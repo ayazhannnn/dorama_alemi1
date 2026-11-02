@@ -25,6 +25,29 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
+      - name: google-services.json (secret немесе CI placeholder)
+        env:
+          GS_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -n "$GS_JSON" ]; then
+            echo "$GS_JSON" | base64 -d > android/app/google-services.json
+            echo "Нақты google-services.json secret-тен алынды"
+          else
+            PKG=$(grep -rhoE 'applicationId[ =]+"[^"]+"' android/app/build.gradle* | head -1 | sed 's/.*"\(.*\)"/\1/')
+            [ -n "$PKG" ] || { echo "::error::applicationId табылмады"; exit 1; }
+            cat > android/app/google-services.json <<JSON
+          {
+            "project_info": {"project_number": "000000000000", "project_id": "ci-placeholder", "storage_bucket": "ci-placeholder.appspot.com"},
+            "client": [{
+              "client_info": {"mobilesdk_app_id": "1:000000000000:android:0000000000000000", "android_client_info": {"package_name": "$PKG"}},
+              "api_key": [{"current_key": "placeholder"}],
+              "services": {"appinvite_service": {"other_platform_oauth_client": []}}
+            }],
+            "configuration_version": "1"
+          }
+          JSON
+            echo "::notice::CI placeholder жасалды (package: $PKG). Нақты Firebase қосылымы жоқ"
+          fi
       - run: flutter build apk --release
       - run: cp build/app/outputs/flutter-apk/app-release.apk ../dorama-${{ github.ref_name }}.apk
       - name: GitHub Release - DORA deployment оқиғасы
