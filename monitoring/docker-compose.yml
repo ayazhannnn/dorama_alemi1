@@ -1,0 +1,14 @@
+# Демо-стендті мониторингтеу: Uptime Kuma (ашық, тегін)
+# Іске қосу: docker compose up -d   ->   http://localhost:3001
+services:
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    container_name: uptime-kuma
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    volumes:
+      - uptime-kuma-data:/app/data
+
+volumes:
+  uptime-kuma-data:
